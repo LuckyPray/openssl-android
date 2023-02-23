@@ -35,8 +35,8 @@ jobs:
           version=$(find . -name "openssl-*.tar.gz" | sed -e 's/.*openssl-\(.*\).tar.gz/\1/')
           pushd openssl
           git init
-          git config --global user.email ${{ GITHUB_ACTOR }}@users.noreply.github.com
-          git config --global user.name ${{ GITHUB_ACTOR }}
+          git config --global user.email ${{ github.actor }}@users.noreply.github.com
+          git config --global user.name ${{ github.actor }}
           if [ -z "$(git status --porcelain)" ]; then
             echo "The BUILD_DIR is setting error or nothing produced" && \
             echo "Exiting..."
