@@ -33,10 +33,10 @@ jobs:
         if: ${{ !github.event.pull_request }}
         run: |
           version=$(find . -name "openssl-*.tar.gz" | sed -e 's/.*openssl-\(.*\).tar.gz/\1/')
-          cd openssl
+          pushd openssl
           git init
-          git config --global user.email ${{ github.actor }}@users.noreply.github.com
-          git config --global user.name ${{ github.actor }}
+          git config --global user.email ${{ GITHUB_ACTOR }}@users.noreply.github.com
+          git config --global user.name ${{ GITHUB_ACTOR }}
           if [ -z "$(git status --porcelain)" ]; then
             echo "The BUILD_DIR is setting error or nothing produced" && \
             echo "Exiting..."
@@ -44,7 +44,8 @@ jobs:
           fi
           git add .
           git commit -m "Build OpenSSL $version"
-          git push --force "https://${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}" master:openssl-$version
+          git push --force "https://username:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}" master:openssl-$version
+          popd
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v3
