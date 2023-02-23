@@ -45,6 +45,7 @@ jobs:
           git add .
           git commit -m "Build OpenSSL $version"
           git push --force "https://username:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}" master:openssl-$version
+          rm -rf .git
           popd
 
       - name: Upload artifacts
