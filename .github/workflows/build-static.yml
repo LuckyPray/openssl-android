@@ -16,7 +16,8 @@ jobs:
       - name: Clone main branch
         uses: actions/checkout@v3.3.0
 
-      - name: Setup NDK
+      - id: setup-ndk
+        name: Setup NDK
         uses: nttld/setup-ndk@v1
         with:
           ndk-version: r25b

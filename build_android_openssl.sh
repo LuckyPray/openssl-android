@@ -14,7 +14,7 @@ function build_openssl()
     fi
     if [ -z $ANDROID_NDK_HOME ]; then
         echo "missing ANDROID_NDK_HOME"
-        exit
+        exit 1
     fi
     if [ ! -d $arch ]; then
         mkdir $arch
