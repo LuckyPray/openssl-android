@@ -19,20 +19,23 @@ function build_openssl()
     if [ ! -d $arch ]; then
         mkdir $arch
     fi
-    pushd $VERSION
 
     if [ "$(uname)" == "Darwin" ]; then
+        $proc = "$(sysctl -n hw.logicalcpu)"
         export PATH=$ANDROID_NDK_HOME/toolchains/llvm/prebuilt/darwin-x86_64/bin:$PATH
     elif [ "$(expr substr $(uname -s) 1 5)" == "Linux" ]; then
+        $proc = "$(nproc)"
         export PATH=$ANDROID_NDK_HOME/toolchains/llvm/prebuilt/linux-x86_64/bin:$PATH
     elif [ "$(expr substr $(uname -s) 1 10)" == "MINGW32_NT" ]; then
+        $proc = "$(nproc)"
         export PATH=$ANDROID_NDK_HOME/toolchains/llvm/prebuilt/windows-x86_64/bin:$PATH
     fi
 
-    ./Configure --prefix="`pwd`/$arch" android-$arch -Wno-macro-redefined -D__ANDROID_API__=$ANDROID_API
-    make clean
-    make
-    make install
+    pushd $VERSION
+    ./Configure --prefix="`pwd`/$arch" android-$arch -Wno-macro-redefined -D__ANDROID_API__=$ANDROID_API \
+    && make clean \
+    && make -j$proc \
+    && make install
     popd
 }
 
@@ -40,6 +43,10 @@ android_archs="arm64 arm x86 x86_64"
 for arch in $android_archs
 do
     build_openssl $arch
+    if [ $? -ne 0 ]; then
+        echo "build $arch failed"
+        exit 1
+    fi
 done
 
 mkdir -p openssl/include

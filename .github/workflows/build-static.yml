@@ -28,6 +28,24 @@ jobs:
         run: |
           chmod +x ./build_android_openssl.sh && ./build_android_openssl.sh
 
+      # deploy openssl/* to new branch
+      - name: Deploy OpenSSL Branch
+        if: ${{ !github.event.pull_request }}
+        run: |
+          version=$(find . -name "openssl-*.tar.gz" | sed -e 's/.*openssl-\(.*\).tar.gz/\1/')
+          cd openssl
+          git init
+          git config --global user.email ${{ github.actor }}@users.noreply.github.com
+          git config --global user.name ${{ github.actor }}
+          if [ -z "$(git status --porcelain)" ]; then
+            echo "The BUILD_DIR is setting error or nothing produced" && \
+            echo "Exiting..."
+            exit 0
+          fi
+          git add .
+          git commit -m "Build OpenSSL $version"
+          git push --force "https://${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}" master:openssl-$version
+
       - name: Upload artifacts
         uses: actions/upload-artifact@v3
         if: ${{ !github.event.pull_request }}
