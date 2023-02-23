@@ -1,10 +1,11 @@
 #!/bin/bash
 
 VERSION='openssl-1.1.1t'
+ANDROID_API=24
 
-function buildopenssl()
+function build_openssl()
 {
-    androidarch=$1
+    arch=$1
     if [ ! -f $VERSION.tar.gz ]; then
         curl -O https://www.openssl.org/source/$VERSION.tar.gz
     fi
@@ -15,26 +16,43 @@ function buildopenssl()
         echo "missing ANDROID_NDK_HOME"
         exit
     fi
-    if [ ! -d $androidarch ]; then
-        mkdir $androidarch
+    if [ ! -d $arch ]; then
+        mkdir $arch
     fi
     pushd $VERSION
-    PATH=$ANDROID_NDK_HOME/toolchains/llvm/prebuilt/darwin-x86_64/bin:$PATH
-    ./Configure --prefix="`pwd`/$androidarch" android-$androidarch -Wno-macro-redefined -D__ANDROID_API__=24
+
+    if [ "$(uname)" == "Darwin" ]; then
+        export PATH=$ANDROID_NDK_HOME/toolchains/llvm/prebuilt/darwin-x86_64/bin:$PATH
+    elif [ "$(expr substr $(uname -s) 1 5)" == "Linux" ]; then
+        export PATH=$ANDROID_NDK_HOME/toolchains/llvm/prebuilt/linux-x86_64/bin:$PATH
+    elif [ "$(expr substr $(uname -s) 1 10)" == "MINGW32_NT" ]; then
+        export PATH=$ANDROID_NDK_HOME/toolchains/llvm/prebuilt/windows-x86_64/bin:$PATH
+    fi
+
+    ./Configure --prefix="`pwd`/$arch" android-$arch -Wno-macro-redefined -D__ANDROID_API__=$ANDROID_API
     make clean
     make
     make install
     popd
 }
 
-buildopenssl arm64
-buildopenssl arm
-buildopenssl x86
-buildopenssl x86_64
+android_archs="arm64 arm x86 x86_64"
+for arch in $android_archs
+do
+    build_openssl $arch
+done
 
-mkdir -p openssl/include openssl/lib/arm64-v8a openssl/lib/armeabi-v7a openssl/lib/x86 openssl/lib/x86_64
-
+mkdir -p openssl/include
 cp -r $VERSION/arm64/include/* openssl/include
+
+build_apis="armeabi-v7a arm64-v8a x86 x86_64"
+for api in $build_apis
+do
+    if [ ! -d openssl/lib/$api ]; then
+        mkdir -p openssl/lib/$api
+    fi
+done
+
 cp $VERSION/arm64/lib/*.a openssl/lib/arm64-v8a
 cp $VERSION/arm/lib/*.a openssl/lib/armeabi-v7a
 cp $VERSION/x86/lib/*.a openssl/lib/x86

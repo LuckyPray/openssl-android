@@ -1,0 +1,35 @@
+name: Build OpenSSL static libraries
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Clone main branch
+        uses: actions/checkout@v3.3.0
+
+      - name: Setup NDK
+        uses: nttld/setup-ndk@v1
+        with:
+          ndk-version: r25b
+
+      - name: Build OpenSSL
+        env:
+          ANDROID_NDK_HOME: ${{ steps.setup-ndk.outputs.ndk-path }}
+        run: |
+          chmod +x ./build_android_openssl.sh && ./build_android_openssl.sh
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v3
+        if: ${{ !github.event.pull_request }}
+        with:
+          path: 'openssl/*'
+          name: build_output_${{ github.event.head_commit.id }}.zip
