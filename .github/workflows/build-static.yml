@@ -14,7 +14,7 @@ jobs:
 
     steps:
       - name: Clone main branch
-        uses: actions/checkout@v3.3.0
+        uses: actions/checkout@v4
 
       - id: setup-ndk
         name: Setup NDK
@@ -49,7 +49,7 @@ jobs:
           popd
 
       - name: Upload artifacts
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         if: ${{ !github.event.pull_request }}
         with:
           path: 'openssl/*'
